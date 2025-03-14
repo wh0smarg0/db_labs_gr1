@@ -109,3 +109,9 @@
 [Посилання на Survio](https://www.survio.com/l-ua-13-sozdat-opros?campaignid=19956884076&keywordid=kwd-295157739086&keyword=survio&matchtype=e&adgroupid=149569763002&adposition=&device=c&trc_cp=UA-UA&utm_source=google&utm_medium=cpc&utm_campaign=S-UA-UA-SEA&utm_term=survio&utm_campaign=S-UA-UA-SEA&utm_source=adwords&utm_medium=ppc&hsa_acc=8232418607&hsa_cam=19956884076&hsa_grp=149569763002&hsa_ad=654605759662&hsa_src=g&hsa_tgt=kwd-295157739086&hsa_kw=survio&hsa_mt=e&hsa_net=adwords&hsa_ver=3&gad_source=1&gclid=Cj0KCQiA2oW-BhC2ARIsADSIAWoDg_49ju3Xfmc2xiRG1VK5v0rt2tx3b79e9YPDH5P21usNtyY31DIaAtqeEALw_wcB)
 
 [Посилання на Typeform](https://www.typeform.com)
+
+[Посилання на Zoho Survey](https://www.zoho.com/survey/)
+
+[Посилання на Survey Monkey](https://www.surveymonkey.com/product/)
+
+[Посилання на Microsoft Forms](https://www.microsoft.com/en-us/microsoft-365/online-surveys-polls-quizzes#Overview-1)
