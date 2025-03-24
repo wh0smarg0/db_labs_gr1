@@ -14,7 +14,7 @@ cd docs/.vuepress/dist
 
 git init
 git add -A
-git commit -m 'deploy'
+git commit -m "Deploy to gh-pages"
 
 # if you are deploying to https://<USERNAME>.github.io
 # git push -f git@github.com:boldak/<USERNAME>.github.io.git master
