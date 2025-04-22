@@ -41,6 +41,7 @@ usecase UC13 as "Видалення\nоблікового запису"
 
 ```plantuml
 @startuml
+skinparam actorStyle awesome
 actor Client
 (Client) -down-> (UserReg)
 (Client) -down-> (UserLogin)
@@ -66,3 +67,7 @@ actor Client
 (ExportSurveyRes) as "Експорт результатів\nопитування"
 @enduml
 ```
+
+## Схема експерта
+
+
