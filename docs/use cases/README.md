@@ -5,35 +5,26 @@
 skinparam actorStyle awesome
 actor Client 
 actor Expert
-Client --> (UC4)
-usecase UC4 as "Заповнення\nопитування"
-Client --> (UC5)
-usecase UC5 as "Завершення\nопитування"
-Client --> (UC7)
-usecase UC7 as "Редагування\nвідповідей"
-Client --> (UC10)
-usecase UC10 as "Надсилання\nвідгуку"
-Client --> (UC3)
-usecase UC3 as "Створення\nопитування"
-Client --> (UC8)
-usecase UC8 as "Редагування\nопитування"
-Client --> (UC11)
-usecase UC11 as "Формування\nпосилання"
-Client --> (UC6)
-usecase UC6 as "Перегляд\nрезультатів"
-Client --> (UC9)
-usecase UC9 as "Експорт\nрезультатів"
 Client --> (UC1)
-usecase UC1 as "Реєстрація"
+usecase UC1 as "Взаємодія\nз обліковим записом"
 Client --> (UC2)
-usecase UC2 as "Вхід\nу систему"
-Expert --> (UC12)
-usecase UC12 as "Надання\nадміністративних прав"
-Expert --> (UC13)
-usecase UC13 as "Видалення\nоблікового запису"
+usecase UC2 as "Створення\nнового опитування"
+Client --> (UC3)
+usecase UC3 as "Заповнення\nопитування"
+Client --> (UC4)
+usecase UC4 as "Завершення\nопитування"
+Client --> (UC5)
+usecase UC5 as "Взаємодія\nз результатами\nопитування"
+Client --> (UC6)
+usecase UC6 as "Редагування\nопитування"
+Client --> (UC7)
+usecase UC7 as "Надсилання\nвідгуку\nпро опитування"
+Client --> (UC8)
+usecase UC8 as "Формування\nпосилання\nна опитування"
+Expert --> (UC9)
+usecase UC9 as "Керування\nобліковими записами"
 Expert -d-|> Client
 @enduml
-
 ```
 
 ## Схема клієнта
@@ -42,33 +33,59 @@ Expert -d-|> Client
 @startuml
 skinparam actorStyle awesome
 actor Client
-(Client) -down-> (UserReg)
-(Client) -down-> (UserLogin)
-(Client) -right-> (CreateNewSurvey)
-(Client) -right-> (EditSurvey)
-(Client) -right-> (CreateLinkToSurvey)
-(Client) -up-> (FillNewSurvey)
-(Client) -up-> (EditPrevAnswers)
-(Client) -up-> (EndSurvey)
-(Client) -up-> (SendSurveyFeedback)
-(Client) -left-> (CheckSurveyRes)
-(Client) -left-> (ExportSurveyRes)
-(UserReg) as "Реєстрація\nкористувача"
-(UserLogin) as "Вхід у систему"
-(CreateNewSurvey) as "Створення\nнового опитування"
-(EditSurvey) as "Редагування\nопитування"
-(CreateLinkToSurvey) as "Формування посилання\nна опитування"
-(FillNewSurvey) as "Заповнення опитування"
-(EditPrevAnswers) as "Редагування попередньо\nнаданих відповідей"
-(EndSurvey) as "Завершення\nопитування"
-(SendSurveyFeedback) as "Надсилання\nвідгуку про опитування"
-(CheckSurveyRes) as "Перегляд\nрезультатів опитування"
-(ExportSurveyRes) as "Експорт результатів\nопитування"
+
+usecase "Взаємодія з\nобліковим записом" as US1
+usecase "Реєстрація\nкористувача" as US2
+usecase "Вхід у систему" as US3
+
+usecase "Створення\nнового опитування" as US4
+usecase "Заповнення опитування" as US5
+usecase "Завершення\nопитування" as US6
+
+usecase "Взаємодія\nз результатами" as US7
+usecase "Перегляд\nрезультатів\nопитування" as US8
+usecase "Експорт\nрезультатів\nопитування" as US9
+usecase "Редагування попередньо\nнаданих відповідей" as US10
+
+usecase "Редагування\nопитування" as US11
+usecase "Надсилання\nвідгуку\nпро опитування" as US12
+usecase "Формування\nпосилання\nна опитування" as US13
+
+Client -u-> US1
+US1 ..> US2
+US1 ..> US3
+Client -[hidden]-> US1
+Client -[hidden]-> US7
+Client -l-> US4
+Client -u-> US5
+Client -u-> US6
+Client -d-> US7
+US7 ..> US8
+US7 ..> US9
+US7 ..> US10
+Client -r-> US11
+Client -u-> US12
+Client -u-> US13
 @enduml
 ```
 
 ## Схема експерта
+```plantuml
+@startuml
 
+skinparam actorStyle awesome
+actor Expert
+
+usecase "Керування обліковими записами" as US1
+usecase "Надання адміністративних прав" as US2
+usecase "Видалення облікового запису користувача" as US3
+
+Expert -d-> US1
+US1 ..> US2
+US1 ..> US3
+
+@enduml
+```
 
 
 
