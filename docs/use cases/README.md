@@ -3,38 +3,37 @@
 ```plantuml
 @startuml
 skinparam actorStyle awesome
-skinparam defaultTextAlignment center
-skinparam layoutDirection topToBottom
-actor Клієнт
-actor Адміністратор
-Клієнт --> (UC4)
+actor Client 
+actor Expert
+Client --> (UC4)
 usecase UC4 as "Заповнення\nопитування"
-Клієнт --> (UC5)
+Client --> (UC5)
 usecase UC5 as "Завершення\nопитування"
-Клієнт --> (UC7)
+Client --> (UC7)
 usecase UC7 as "Редагування\nвідповідей"
-Клієнт --> (UC10)
+Client --> (UC10)
 usecase UC10 as "Надсилання\nвідгуку"
-Клієнт --> (UC3)
+Client --> (UC3)
 usecase UC3 as "Створення\nопитування"
-Клієнт --> (UC8)
+Client --> (UC8)
 usecase UC8 as "Редагування\nопитування"
-Клієнт --> (UC11)
+Client --> (UC11)
 usecase UC11 as "Формування\nпосилання"
-Клієнт --> (UC6)
+Client --> (UC6)
 usecase UC6 as "Перегляд\nрезультатів"
-Клієнт --> (UC9)
+Client --> (UC9)
 usecase UC9 as "Експорт\nрезультатів"
-Клієнт --> (UC1)
+Client --> (UC1)
 usecase UC1 as "Реєстрація"
-Клієнт --> (UC2)
+Client --> (UC2)
 usecase UC2 as "Вхід\nу систему"
-Адміністратор --> (UC12)
+Expert --> (UC12)
 usecase UC12 as "Надання\nадміністративних прав"
-Адміністратор --> (UC13)
+Expert --> (UC13)
 usecase UC13 as "Видалення\nоблікового запису"
-Адміністратор -d-|> Клієнт
+Expert -d-|> Client
 @enduml
+
 ```
 
 ## Схема клієнта
