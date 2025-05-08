@@ -1,4 +1,4 @@
-### В рамках проекту розробляється: 
+## В рамках проекту розробляється: 
 
 ## Модель бізнес-об'єктів:
 @startuml
@@ -82,11 +82,12 @@ Question "1" -- "1..*" Answer : answered by <
 @enduml
 
 ## ER-модель:
+```plantuml
 @startuml
 hide circle
 skinparam linetype ortho
 
-<pre>``` entity User {
+entity User {
   *id
   --
   *email
@@ -134,7 +135,7 @@ entity Answer {
   *id
   --
   *value
-} </pre> ```
+}
 User ||--o{ Survey : "creates"
 Survey ||--o{ Question : "contains"
 Survey ||--o{ Response : "has"
@@ -143,6 +144,6 @@ User ||--o{ Response : "submits"
 Response ||--o{ Answer : "includes"
 Question ||--o{ Answer : "has"
 @enduml
-
+```
 ## Реляційна схема:
 ![Реляційна схема](rel.png)
