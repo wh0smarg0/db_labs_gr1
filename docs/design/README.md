@@ -1,8 +1,7 @@
-В рамках проекту розробляється: 
+# В рамках проекту розробляється: 
 
-## Модель бізнес-об'єктів:
+# Модель бізнес-об'єктів:
 @startuml
-<pre> ```
 entity User
 entity User.id
 entity User.email
@@ -80,14 +79,14 @@ Survey "1" -- "0..*" SurveyLink : generates >
 User "1" -- "0..*" Response : submits >
 Response "1" -- "1..*" Answer : includes >
 Question "1" -- "1..*" Answer : answered by <
-``` </pre>
 @enduml
 
 ## ER-модель:
 @startuml
-<pre> ```
+
 hide circle
 skinparam linetype ortho
+```
 entity User {
   *id
   --
@@ -136,7 +135,7 @@ entity Answer {
   *id
   --
   *value
-}
+} ```
 User ||--o{ Survey : "creates"
 Survey ||--o{ Question : "contains"
 Survey ||--o{ Response : "has"
