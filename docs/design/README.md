@@ -134,7 +134,7 @@ entity Answer {
   *id
   --
   *value
-} ```
+}
 User ||--o{ Survey : "creates"
 Survey ||--o{ Question : "contains"
 Survey ||--o{ Response : "has"
@@ -142,7 +142,6 @@ Survey ||--o{ SurveyLink : "generates"
 User ||--o{ Response : "submits"
 Response ||--o{ Answer : "includes"
 Question ||--o{ Answer : "has"
- ``` </pre>
 @enduml
 
 ## Реляційна схема:
