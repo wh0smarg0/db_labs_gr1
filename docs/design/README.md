@@ -1,6 +1,7 @@
 ## В рамках проекту розробляється: 
 
 ## Модель бізнес-об'єктів:
+```plantuml
 @startuml
 entity User
 entity User.id
@@ -80,7 +81,7 @@ User "1" -- "0..*" Response : submits >
 Response "1" -- "1..*" Answer : includes >
 Question "1" -- "1..*" Answer : answered by <
 @enduml
-
+```
 ## ER-модель:
 ```plantuml
 @startuml
