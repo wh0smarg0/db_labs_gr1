@@ -1,12 +1,10 @@
-# Проєктування бази даних
+![image](https://github.com/user-attachments/assets/0164b69b-7c64-41af-9348-2a1041334522)# Проєктування бази даних
 
 В рамках проекту розробляється: 
-- модель бізнес-об'єктів
-- ER-модель
-- реляційна схема
 
 ## Модель бізнес-об'єктів:
 @startuml
+<pre> ```
 entity User
 entity User.id
 entity User.email
@@ -84,14 +82,14 @@ Survey "1" -- "0..*" SurveyLink : generates >
 User "1" -- "0..*" Response : submits >
 Response "1" -- "1..*" Answer : includes >
 Question "1" -- "1..*" Answer : answered by <
-
+``` </pre>
 @enduml
 
 ## ER-модель:
 @startuml
+<pre> ```
 hide circle
 skinparam linetype ortho
-<pre> ```
 entity User {
   *id
   --
@@ -141,7 +139,6 @@ entity Answer {
   --
   *value
 }
-``` </pre>
 User ||--o{ Survey : "creates"
 Survey ||--o{ Question : "contains"
 Survey ||--o{ Response : "has"
@@ -149,7 +146,8 @@ Survey ||--o{ SurveyLink : "generates"
 User ||--o{ Response : "submits"
 Response ||--o{ Answer : "includes"
 Question ||--o{ Answer : "has"
+ ``` </pre>
 @enduml
 
 ## Реляційна схема:
-![screenshot]([‎docs/design/rel.png](https://github.com/gemonituer/db_labs_gr1/blob/master/docs/design/rel.png))
+![screenshot](![rel](https://github.com/user-attachments/assets/a94add02-4ec3-4742-9f34-621cd2720eec))
