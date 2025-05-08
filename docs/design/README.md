@@ -145,4 +145,4 @@ Question ||--o{ Answer : "has"
 @enduml
 
 ## Реляційна схема:
-![Реляційна схема](docs/design/rel.png)
+![Реляційна схема](rel.png)
