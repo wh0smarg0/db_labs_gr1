@@ -89,11 +89,9 @@ Question "1" -- "1..*" Answer : answered by <
 
 ## ER-модель:
 @startuml
-' Налаштування стилю
 hide circle
 skinparam linetype ortho
 
-' === Сутності ===
 entity User {
   *id
   --
@@ -103,7 +101,7 @@ entity User {
   *isActive
 }
 
-entity Survey {
+Survey {
   *id
   --
   *title
@@ -144,7 +142,6 @@ entity Answer {
   *value
 }
 
-' === Зв'язки ===
 User ||--o{ Survey : "creates"
 Survey ||--o{ Question : "contains"
 Survey ||--o{ Response : "has"
@@ -155,4 +152,4 @@ Question ||--o{ Answer : "has"
 @enduml
 
 ## Реляційна схема:
-![screenshot](‎docs/design/rel.png)
+![screenshot]([‎docs/design/rel.png](https://github.com/gemonituer/db_labs_gr1/blob/master/docs/design/rel.png))
