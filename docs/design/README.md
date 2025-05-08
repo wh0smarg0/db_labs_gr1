@@ -1,6 +1,6 @@
 # В рамках проекту розробляється: 
 
-# Модель бізнес-об'єктів:
+## Модель бізнес-об'єктів:
 @startuml
 entity User
 entity User.id
@@ -83,10 +83,9 @@ Question "1" -- "1..*" Answer : answered by <
 
 ## ER-модель:
 @startuml
-
 hide circle
 skinparam linetype ortho
-```
+
 entity User {
   *id
   --
