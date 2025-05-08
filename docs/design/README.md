@@ -1,5 +1,3 @@
-![image](https://github.com/user-attachments/assets/0164b69b-7c64-41af-9348-2a1041334522)# Проєктування бази даних
-
 В рамках проекту розробляється: 
 
 ## Модель бізнес-об'єктів:
@@ -150,4 +148,4 @@ Question ||--o{ Answer : "has"
 @enduml
 
 ## Реляційна схема:
-![screenshot](![rel](https://github.com/user-attachments/assets/a94add02-4ec3-4742-9f34-621cd2720eec))
+![Реляційна схема](docs/design/rel.png)
