@@ -86,7 +86,7 @@ Question "1" -- "1..*" Answer : answered by <
 hide circle
 skinparam linetype ortho
 
-entity User {
+<pre>``` entity User {
   *id
   --
   *email
@@ -134,7 +134,7 @@ entity Answer {
   *id
   --
   *value
-}
+} </pre> ```
 User ||--o{ Survey : "creates"
 Survey ||--o{ Question : "contains"
 Survey ||--o{ Response : "has"
