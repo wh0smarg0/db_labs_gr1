@@ -91,7 +91,7 @@ Question "1" -- "1..*" Answer : answered by <
 @startuml
 hide circle
 skinparam linetype ortho
-
+<pre> ```
 entity User {
   *id
   --
@@ -141,7 +141,7 @@ entity Answer {
   --
   *value
 }
-
+``` </pre>
 User ||--o{ Survey : "creates"
 Survey ||--o{ Question : "contains"
 Survey ||--o{ Response : "has"
