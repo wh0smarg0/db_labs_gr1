@@ -1,7 +1,12 @@
-## В рамках проекту розробляється: 
+## У рамках проекту розробляється: 
+- [модель бізнес-об’єктів](#модель-бізнес-об-єктів);
+- [ER-модель](#er-модель);
+- [реляційна схема](#реляціина-схема).
 
-## Модель бізнес-об'єктів:
-```plantuml
+
+## Модель бізнес-об'єктів
+<div style="text-align: center; margin: auto; border: 1px solid;">
+
 @startuml
 entity User
 entity User.id
@@ -81,9 +86,13 @@ User "1" -- "0..*" Response : submits >
 Response "1" -- "1..*" Answer : includes >
 Question "1" -- "1..*" Answer : answered by <
 @enduml
-```
-## ER-модель:
-```plantuml
+
+</div>
+
+
+## ER-модель
+<div style="text-align: center; margin: auto; border: 1px solid;">
+
 @startuml
 hide circle
 skinparam linetype ortho
@@ -97,7 +106,7 @@ entity User {
   *isActive
 }
 
-Survey {
+entity Survey {
   *id
   --
   *title
@@ -145,6 +154,14 @@ User ||--o{ Response : "submits"
 Response ||--o{ Answer : "includes"
 Question ||--o{ Answer : "has"
 @enduml
-```
-## Реляційна схема:
-![Реляційна схема](rel.png)
+
+</div>
+
+
+## Реляційна схема
+<div style="text-align: center; margin: auto; border: 1px solid;">
+	<img src="./relational_schema.png">
+</div>
+
+
+
