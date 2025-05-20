@@ -1,12 +1,13 @@
 # Реалізація інформаційного та програмного забезпечення
 
-В рамках проекту розробляється: 
-- SQL-скрипт для створення на початкового наповнення бази даних
-- RESTfull сервіс для управління даними
+У рамках проєкту розробляється:
+- SQL-скрипти для створення та початкового наповнення бази даних;
+- RESTfull сервіс для управління даними.
 
-main.sql:
 
-<pre>
+## SQL-скрипти
+### main.sql
+```sql
   CREATE TABLE User (
     id INT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
@@ -62,11 +63,10 @@ CREATE TABLE Answer (
     FOREIGN KEY (responseId) REFERENCES Response(id) ON DELETE CASCADE,
     FOREIGN KEY (questionId) REFERENCES Question(id) ON DELETE CASCADE
 );
-</pre>
+```
 
-test_d.sql:
-
-<pre>
+### test_d.sql
+```sql
   INSERT INTO User (email, passwordHash, role, isActive) VALUES
 ('admin@example.com', 'hash1', 'admin', TRUE),
 ('user1@example.com', 'hash2', 'respondent', TRUE),
@@ -118,4 +118,4 @@ INSERT INTO Answer (value, responseId, questionId) VALUES
 INSERT INTO Answer (value, responseId, questionId) VALUES
 ('Yes', 4, 5),
 ('No issues', 4, 6);
-</pre>
+```
