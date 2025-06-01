@@ -2,7 +2,7 @@
 
 У рамках проєкту розробляється:
 - SQL-скрипти для створення та початкового наповнення бази даних;
-- RESTfull сервіс для управління даними.
+- RESTfull сервіс для керування обліковими записами користувачів системи.
 
 
 ## SQL-скрипти
@@ -118,4 +118,292 @@ INSERT INTO Answer (value, responseId, questionId) VALUES
 INSERT INTO Answer (value, responseId, questionId) VALUES
 ('Yes', 4, 5),
 ('No issues', 4, 6);
+```
+
+
+## RESTfull сервіс
+Сервіс для виконання основних операцій над обліковими записами користувачів системи був розроблений на базі 
+Spring Boot, який є фреймворком Java. У проєкті використовуються такі залежності:
+- Spring Web;
+- Spring Data JPA;
+- MySQL Driver;
+- Flyway Migration;
+- SpringDoc OpenAPI Starter WebMVC UI;
+- Lombok.
+
+Керування базою даних survey_db здійснуюється за допомогою СКРБД MySQL. Підключення до неї описане у файлі `application.yaml`:
+``` yaml
+spring:
+  application:
+    name: lab6
+  datasource:
+    url: jdbc:mysql://localhost:3306/survey_db?useSSL=false&serverTimezone=UTC
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+springdoc:
+  api-docs:
+    path: /api/v1/docs
+```
+
+### Структура директорій сервісу
+```
+src
+└───main
+	├───java
+	│   └───com
+	│       └───db
+	│           └───lab6
+	│               │   StartApplication.java
+	│               │
+	│               ├───config
+	│               │       ApiError.java
+	│               │       GlobalExceptionHandler.java
+	│               │
+	│               ├───controller
+	│               │       UserController.java
+	│               │
+	│               ├───dto
+	│               │       UserRequestDto.java
+	│               │       UserResponseDto.java
+	│               │
+	│               ├───enums
+	│               │       Role.java
+	│               │
+	│               ├───exception
+	│               │       UserAlreadyExistsException.java
+	│               │       UserNotFoundException.java
+	│               │
+	│               ├───model
+	│               │       User.java
+	│               │
+	│               ├───repository
+	│               │       UserRepository.java
+	│               │
+	│               └───service
+	│                       UserService.java
+	│
+	└───resources
+		│   application.yaml
+		│
+		└───db
+			└───migration
+					V1__create_tables.sql
+					V2__insert_initial_data.sql
+```
+
+Основними шарами, які реалізовані в проєкті, є:
+- модель (містить сутності, що відображають структуру таблиць реляційної БД);
+- контролер (отримує HTTP-запити, обробляє їх за допомогою сервісів та повертає клієнту відповіді);
+- сервіс (відповідає за виконання бізнес-логіки);
+- репозиторій (містить інтерфейси, які взаємодіють з базою даних за допомогою Spring Data JPA).
+
+### Модель
+``` java
+package com.db.lab6.model;
+
+import com.db.lab6.enums.Role;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
+
+@Entity
+@Table(name = "app_user")
+@Data
+public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true, length = 50)
+    @Email(message = "Email should be valid")
+    @NotBlank(message = "Email is required")
+    @Size(max = 50, message = "Email cannot be longer than 50 characters")
+    private String email;
+
+    @Column(nullable = false, length = 60)
+    @NotBlank(message = "Password hash is required")
+    @Size(max = 60, message = "Password hash cannot be longer than 60 characters")
+    private String passwordHash;
+
+    @Column(nullable = false, length = 20)
+    @Enumerated(EnumType.STRING)
+    @NotNull(message = "Role is required")
+    private Role role;
+
+    @Column(nullable = false)
+    @NotNull(message = "isActive flag is required")
+    private Boolean isActive;
+}
+```
+
+### Контролер
+``` java
+package com.db.lab6.controller;
+
+import com.db.lab6.dto.UserRequestDto;
+import com.db.lab6.dto.UserResponseDto;
+import com.db.lab6.service.UserService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/v1/users")
+@RequiredArgsConstructor
+public class UserController {
+
+    private final UserService userService;
+
+    @GetMapping
+    public ResponseEntity<List<UserResponseDto>> getAllUsers() {
+        List<UserResponseDto> users = userService.getAllUsers();
+        return ResponseEntity.ok(users);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<UserResponseDto> getUserById(@PathVariable Long id) {
+        UserResponseDto user = userService.getUserById(id);
+        return ResponseEntity.ok(user);
+    }
+
+    @PostMapping
+    public ResponseEntity<UserResponseDto> createUser(@Valid @RequestBody UserRequestDto userRequestDto) {
+        UserResponseDto createdUser = userService.createUser(userRequestDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<UserResponseDto> updateUser(
+            @PathVariable Long id,
+            @Valid @RequestBody UserRequestDto userRequestDto) {
+        UserResponseDto updatedUser = userService.updateUser(id, userRequestDto);
+        return ResponseEntity.ok(updatedUser);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        userService.deleteUserById(id);
+        return ResponseEntity.noContent().build();
+    }
+}
+```
+
+### Сервіс
+``` java
+package com.db.lab6.service;
+
+import com.db.lab6.dto.UserRequestDto;
+import com.db.lab6.dto.UserResponseDto;
+import com.db.lab6.model.User;
+import com.db.lab6.repository.UserRepository;
+import com.db.lab6.exception.UserAlreadyExistsException;
+import com.db.lab6.exception.UserNotFoundException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class UserService {
+
+    private final UserRepository userRepository;
+
+    public List<UserResponseDto> getAllUsers() {
+        List<User> users = userRepository.findAll();
+        return users.stream()
+                .map(this::convertToResponseDto)
+                .collect(Collectors.toList());
+    }
+
+    public UserResponseDto getUserById(Long id) {
+        return userRepository.findById(id)
+                .map(this::convertToResponseDto)
+                .orElseThrow(() -> new UserNotFoundException(id));
+    }
+
+    public UserResponseDto createUser(UserRequestDto userRequestDto) {
+        checkEmailUniqueness(userRequestDto.getEmail());
+
+        User user = new User();
+
+        user.setEmail(userRequestDto.getEmail());
+        user.setPasswordHash(userRequestDto.getPasswordHash());
+        user.setRole(userRequestDto.getRole());
+        user.setIsActive(userRequestDto.getIsActive());
+
+        User savedUser = userRepository.save(user);
+        return convertToResponseDto(savedUser);
+    }
+
+    public UserResponseDto updateUser(Long id, UserRequestDto userRequestDto) {
+        User existingUser = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
+
+        if (!existingUser.getEmail().equals(userRequestDto.getEmail())) {
+            checkEmailUniqueness(userRequestDto.getEmail());
+            existingUser.setEmail(userRequestDto.getEmail());
+        }
+
+        existingUser.setPasswordHash(userRequestDto.getPasswordHash());
+        existingUser.setRole(userRequestDto.getRole());
+        existingUser.setIsActive(userRequestDto.getIsActive());
+
+        User savedUser = userRepository.save(existingUser);
+        return convertToResponseDto(savedUser);
+    }
+
+    public void deleteUserById(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
+        userRepository.delete(user);
+    }
+
+    private void checkEmailUniqueness(String email) {
+        if (userRepository.findByEmail(email).isPresent()) {
+            throw new UserAlreadyExistsException(email);
+        }
+    }
+
+    private UserResponseDto convertToResponseDto(User user) {
+        UserResponseDto dto = new UserResponseDto();
+        dto.setId(user.getId());
+        dto.setEmail(user.getEmail());
+        dto.setPasswordHash(user.getPasswordHash());
+        dto.setRole(user.getRole());
+        dto.setIsActive(user.getIsActive());
+        return dto;
+    }
+}
+```
+
+### Репозиторій
+``` java
+package com.db.lab6.repository;
+
+import com.db.lab6.model.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface UserRepository extends JpaRepository<User, Long> {
+    Optional<User> findByEmail(String email);
+}
 ```
