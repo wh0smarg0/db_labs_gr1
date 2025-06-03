@@ -1,7 +1,0 @@
-CREATE TABLE app_user (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    email VARCHAR(50) NOT NULL UNIQUE,
-    password_hash VARCHAR(60) NOT NULL,
-    role VARCHAR(20) NOT NULL,
-    is_active BOOLEAN NOT NULL
-);
