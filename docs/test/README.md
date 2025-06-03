@@ -120,7 +120,7 @@
 	<img src="./images/getanswer3.png">
 </div>
 
-## DELETE answers/1:
+## DELETE answers/3:
 <div style="text-align: center; margin: auto; margin-top: 15px; border: 1px solid;">
 	<img src="./images/deleteanswer.png">
 </div>
