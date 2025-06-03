@@ -121,289 +121,407 @@ INSERT INTO Answer (value, responseId, questionId) VALUES
 ```
 
 
-## RESTfull сервіс
-Сервіс для виконання основних операцій над обліковими записами користувачів системи був розроблений на базі 
-Spring Boot, який є фреймворком Java. У проєкті використовуються такі залежності:
-- Spring Web;
-- Spring Data JPA;
-- MySQL Driver;
-- Flyway Migration;
-- SpringDoc OpenAPI Starter WebMVC UI;
-- Lombok.
+## RESTfull сервіс для управління даними
+### Ресурси
+user.py
+```py
+from flask_restful import Resource, reqparse
+from models import db,User
 
-Керування базою даних survey_db здійснуюється за допомогою СКРБД MySQL. Підключення до неї описане у файлі `application.yaml`:
-``` yaml
-spring:
-  application:
-    name: lab6
-  datasource:
-    url: jdbc:mysql://localhost:3306/survey_db?useSSL=false&serverTimezone=UTC
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    show-sql: true
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
+parser = reqparse.RequestParser()
+parser.add_argument('email', type=str, required=True)
+parser.add_argument('passwordHash', type=str, required=True)
+parser.add_argument('role', type=str, required=True)
+parser.add_argument('isActive', type=bool, required=True)
 
-springdoc:
-  api-docs:
-    path: /api/v1/docs
+class UserListResource(Resource):
+    def get(self):
+        users = User.query.all()
+        return [{'id': u.id, 'email': u.email, 'role': u.role, 'isActive': u.isActive} for u in users]
+
+    def post(self):
+        args = parser.parse_args()
+        user = User(**args)
+        db.session.add(user)
+        db.session.commit()
+        return {'message': 'User created', 'id': user.id}, 201
+
+class UserResource(Resource):
+    def get(self, user_id):
+        user = User.query.get_or_404(user_id)
+        return {'id': user.id, 'email': user.email, 'role': user.role, 'isActive': user.isActive}
+
+    def put(self, user_id):
+        user = User.query.get_or_404(user_id)
+        args = parser.parse_args()
+        for key, value in args.items():
+            setattr(user, key, value)
+        db.session.commit()
+        return {'message': 'User updated'}
+
+    def delete(self, user_id):
+        user = User.query.get_or_404(user_id)
+        db.session.delete(user)
+        db.session.commit()
+        return {'message': 'User deleted'}
+
 ```
+survey-links.py
+```py
+from flask_restful import Resource, reqparse
+from models import db, SurveyLink
+from datetime import datetime
 
-### Структура директорій сервісу
+parser = reqparse.RequestParser()
+parser.add_argument('token', type=str, required=True)
+parser.add_argument('isActive', type=bool, required=True)
+parser.add_argument('expiryDate', type=str)
+parser.add_argument('clicks', type=int)
+parser.add_argument('surveyId', type=int, required=True)
+
+class SurveyLinkListResource(Resource):
+    def get(self):
+        links = SurveyLink.query.all()
+        return [{'id': l.id, 'token': l.token, 'isActive': l.isActive} for l in links]
+
+    def post(self):
+        args = parser.parse_args()
+        if args['expiryDate']:
+            args['expiryDate'] = datetime.fromisoformat(args['expiryDate'])
+        link = SurveyLink(**args)
+        db.session.add(link)
+        db.session.commit()
+        return {'message': 'Survey link created', 'id': link.id}, 201
+
+class SurveyLinkResource(Resource):
+    def get(self, link_id):
+        l = SurveyLink.query.get_or_404(link_id)
+        return {'id': l.id, 'token': l.token, 'isActive': l.isActive, 'clicks': l.clicks}
+
+    def put(self, link_id):
+        l = SurveyLink.query.get_or_404(link_id)
+        args = parser.parse_args()
+        if args['expiryDate']:
+            args['expiryDate'] = datetime.fromisoformat(args['expiryDate'])
+        for k, v in args.items():
+            setattr(l, k, v)
+        db.session.commit()
+        return {'message': 'Survey link updated'}
+
+    def delete(self, link_id):
+        l = SurveyLink.query.get_or_404(link_id)
+        db.session.delete(l)
+        db.session.commit()
+        return {'message': 'Survey link deleted'}
 ```
-src
-└───main
-	├───java
-	│   └───com
-	│       └───db
-	│           └───lab6
-	│               │   StartApplication.java
-	│               │
-	│               ├───config
-	│               │       ApiError.java
-	│               │       GlobalExceptionHandler.java
-	│               │
-	│               ├───controller
-	│               │       UserController.java
-	│               │
-	│               ├───dto
-	│               │       UserRequestDto.java
-	│               │       UserResponseDto.java
-	│               │
-	│               ├───enums
-	│               │       Role.java
-	│               │
-	│               ├───exception
-	│               │       UserAlreadyExistsException.java
-	│               │       UserNotFoundException.java
-	│               │
-	│               ├───model
-	│               │       User.java
-	│               │
-	│               ├───repository
-	│               │       UserRepository.java
-	│               │
-	│               └───service
-	│                       UserService.java
-	│
-	└───resources
-		│   application.yaml
-		│
-		└───db
-			└───migration
-					V1__create_tables.sql
-					V2__insert_initial_data.sql
+survey.py
+```py
+from flask_restful import Resource, reqparse
+from models import db, Survey
+from datetime import datetime
+
+parser = reqparse.RequestParser()
+parser.add_argument('title', type=str, required=True)
+parser.add_argument('description', type=str)
+parser.add_argument('status', type=str, required=True)
+parser.add_argument('creationDate', type=str, required=True)
+parser.add_argument('closeDate', type=str)
+parser.add_argument('userId', type=int, required=True)
+
+class SurveyListResource(Resource):
+    def get(self):
+        surveys = Survey.query.all()
+        return [{'id': s.id, 'title': s.title, 'status': s.status} for s in surveys]
+
+    def post(self):
+        args = parser.parse_args()
+        args['creationDate'] = datetime.fromisoformat(args['creationDate'])
+        if args['closeDate']:
+            args['closeDate'] = datetime.fromisoformat(args['closeDate'])
+        survey = Survey(**args)
+        db.session.add(survey)
+        db.session.commit()
+        return {'message': 'Survey created', 'id': survey.id}, 201
+
+class SurveyResource(Resource):
+    def get(self, survey_id):
+        s = Survey.query.get_or_404(survey_id)
+        return {'id': s.id, 'title': s.title, 'description': s.description, 'status': s.status}
+
+    def put(self, survey_id):
+        s = Survey.query.get_or_404(survey_id)
+        args = parser.parse_args()
+        args['creationDate'] = datetime.fromisoformat(args['creationDate'])
+        if args['closeDate']:
+            args['closeDate'] = datetime.fromisoformat(args['closeDate'])
+        for k, v in args.items():
+            setattr(s, k, v)
+        db.session.commit()
+        return {'message': 'Survey updated'}
+
+    def delete(self, survey_id):
+        s = Survey.query.get_or_404(survey_id)
+        db.session.delete(s)
+        db.session.commit()
+        return {'message': 'Survey deleted'}
 ```
+response.py
+```py
+from flask_restful import Resource, reqparse
+from models import db, Response
+from datetime import datetime
 
-Основними шарами, які реалізовані в проєкті, є:
-- модель (містить сутності, що відображають структуру таблиць реляційної БД);
-- контролер (отримує HTTP-запити, обробляє їх за допомогою сервісів та повертає клієнту відповіді);
-- сервіс (відповідає за виконання бізнес-логіки);
-- репозиторій (містить інтерфейси, які взаємодіють з базою даних за допомогою Spring Data JPA).
+def str_to_bool(value):
+    if isinstance(value, bool):
+        return value
+    if value.lower() in ('true', '1', 't', 'y', 'yes'):
+        return True
+    elif value.lower() in ('false', '0', 'f', 'n', 'no'):
+        return False
+    else:
+        raise ValueError('Boolean value expected.')
 
-### Модель
-``` java
-package com.db.lab6.model;
+parser = reqparse.RequestParser()
+parser.add_argument('submissionDate', type=str, required=True)
+parser.add_argument('isComplete', type=str_to_bool, required=True)
+parser.add_argument('surveyLinkId', type=int, required=True)
 
-import com.db.lab6.enums.Role;
-import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import lombok.Data;
+class ResponseListResource(Resource):
+    def get(self):
+        responses = Response.query.all()
+        return [{'id': r.id, 'isComplete': r.isComplete, 'surveyLinkId': r.surveyLinkId} for r in responses]
 
-@Entity
-@Table(name = "app_user")
-@Data
-public class User {
+    def post(self):
+        args = parser.parse_args()
+        args['submissionDate'] = datetime.fromisoformat(args['submissionDate'])
+        response = Response(**args)
+        db.session.add(response)
+        db.session.commit()
+        return {'message': 'Response created', 'id': response.id}, 201
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+class ResponseResource(Resource):
+    def get(self, response_id):
+        r = Response.query.get_or_404(response_id)
+        return {'id': r.id, 'submissionDate': r.submissionDate.isoformat(), 'isComplete': r.isComplete}
 
-    @Column(nullable = false, unique = true, length = 50)
-    @Email(message = "Email should be valid")
-    @NotBlank(message = "Email is required")
-    @Size(max = 50, message = "Email cannot be longer than 50 characters")
-    private String email;
+    def put(self, response_id):
+        r = Response.query.get_or_404(response_id)
+        args = parser.parse_args()
+        args['submissionDate'] = datetime.fromisoformat(args['submissionDate'])
+        for k, v in args.items():
+            setattr(r, k, v)
+        db.session.commit()
+        return {'message': 'Response updated'}
 
-    @Column(nullable = false, length = 60)
-    @NotBlank(message = "Password hash is required")
-    @Size(max = 60, message = "Password hash cannot be longer than 60 characters")
-    private String passwordHash;
-
-    @Column(nullable = false, length = 20)
-    @Enumerated(EnumType.STRING)
-    @NotNull(message = "Role is required")
-    private Role role;
-
-    @Column(nullable = false)
-    @NotNull(message = "isActive flag is required")
-    private Boolean isActive;
-}
+    def delete(self, response_id):
+        r = Response.query.get_or_404(response_id)
+        db.session.delete(r)
+        db.session.commit()
+        return {'message': 'Response deleted'}
 ```
+question.py
+```py
+from flask_restful import Resource, reqparse
+from models import db, Question
 
-### Контролер
-``` java
-package com.db.lab6.controller;
+parser = reqparse.RequestParser()
+parser.add_argument('text', type=str, required=True)
+parser.add_argument('type', type=str, required=True)
+parser.add_argument('isRequired', type=bool, required=True)
+parser.add_argument('order', type=int, required=True)
+parser.add_argument('surveyId', type=int, required=True)
 
-import com.db.lab6.dto.UserRequestDto;
-import com.db.lab6.dto.UserResponseDto;
-import com.db.lab6.service.UserService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+class QuestionListResource(Resource):
+    def get(self):
+        questions = Question.query.all()
+        return [{'id': q.id, 'text': q.text, 'type': q.type, 'isRequired': q.isRequired} for q in questions]
 
-import java.util.List;
+    def post(self):
+        args = parser.parse_args()
+        question = Question(**args)
+        db.session.add(question)
+        db.session.commit()
+        return {'message': 'Question created', 'id': question.id}, 201
 
-@RestController
-@RequestMapping("/api/v1/users")
-@RequiredArgsConstructor
-public class UserController {
+class QuestionResource(Resource):
+    def get(self, question_id):
+        q = Question.query.get_or_404(question_id)
+        return {'id': q.id, 'text': q.text, 'type': q.type, 'isRequired': q.isRequired, 'order': q.order}
 
-    private final UserService userService;
+    def put(self, question_id):
+        q = Question.query.get_or_404(question_id)
+        args = parser.parse_args()
+        for k, v in args.items():
+            setattr(q, k, v)
+        db.session.commit()
+        return {'message': 'Question updated'}
 
-    @GetMapping
-    public ResponseEntity<List<UserResponseDto>> getAllUsers() {
-        List<UserResponseDto> users = userService.getAllUsers();
-        return ResponseEntity.ok(users);
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<UserResponseDto> getUserById(@PathVariable Long id) {
-        UserResponseDto user = userService.getUserById(id);
-        return ResponseEntity.ok(user);
-    }
-
-    @PostMapping
-    public ResponseEntity<UserResponseDto> createUser(@Valid @RequestBody UserRequestDto userRequestDto) {
-        UserResponseDto createdUser = userService.createUser(userRequestDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<UserResponseDto> updateUser(
-            @PathVariable Long id,
-            @Valid @RequestBody UserRequestDto userRequestDto) {
-        UserResponseDto updatedUser = userService.updateUser(id, userRequestDto);
-        return ResponseEntity.ok(updatedUser);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        userService.deleteUserById(id);
-        return ResponseEntity.noContent().build();
-    }
-}
+    def delete(self, question_id):
+        q = Question.query.get_or_404(question_id)
+        db.session.delete(q)
+        db.session.commit()
+        return {'message': 'Question deleted'}
 ```
+answer.py
+```py
+from flask_restful import Resource, reqparse
+from models import db, Answer, Response, Question
 
-### Сервіс
-``` java
-package com.db.lab6.service;
+parser = reqparse.RequestParser()
+parser.add_argument('value', type=str, required=True)
+parser.add_argument('responseId', type=int, required=True)
+parser.add_argument('questionId', type=int, required=True)
 
-import com.db.lab6.dto.UserRequestDto;
-import com.db.lab6.dto.UserResponseDto;
-import com.db.lab6.model.User;
-import com.db.lab6.repository.UserRepository;
-import com.db.lab6.exception.UserAlreadyExistsException;
-import com.db.lab6.exception.UserNotFoundException;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+class AnswerListResource(Resource):
+    def get(self):
+        answers = Answer.query.all()
+        return [{'id': a.id, 'value': a.value, 'responseId': a.responseId, 'questionId': a.questionId} for a in answers]
 
-import java.util.List;
-import java.util.stream.Collectors;
+    def post(self):
+        args = parser.parse_args()
 
-@Service
-@RequiredArgsConstructor
-public class UserService {
+        # Перевірка наявності responseId і questionId
+        if not Response.query.get(args['responseId']):
+            return {'message': f"Response with id {args['responseId']} not found"}, 404
+        if not Question.query.get(args['questionId']):
+            return {'message': f"Question with id {args['questionId']} not found"}, 404
 
-    private final UserRepository userRepository;
+        try:
+            answer = Answer(**args)
+            db.session.add(answer)
+            db.session.commit()
+            return {'message': 'Answer created', 'id': answer.id}, 201
+        except Exception as e:
+            db.session.rollback()
+            return {'message': f'Internal error: {str(e)}'}, 500
 
-    public List<UserResponseDto> getAllUsers() {
-        List<User> users = userRepository.findAll();
-        return users.stream()
-                .map(this::convertToResponseDto)
-                .collect(Collectors.toList());
-    }
+class AnswerResource(Resource):
+    def get(self, answer_id):
+        a = Answer.query.get_or_404(answer_id)
+        return {'id': a.id, 'value': a.value, 'responseId': a.responseId, 'questionId': a.questionId}
 
-    public UserResponseDto getUserById(Long id) {
-        return userRepository.findById(id)
-                .map(this::convertToResponseDto)
-                .orElseThrow(() -> new UserNotFoundException(id));
-    }
+    def put(self, answer_id):
+        a = Answer.query.get_or_404(answer_id)
+        args = parser.parse_args()
+        for k, v in args.items():
+            setattr(a, k, v)
+        db.session.commit()
+        return {'message': 'Answer updated'}
 
-    public UserResponseDto createUser(UserRequestDto userRequestDto) {
-        checkEmailUniqueness(userRequestDto.getEmail());
-
-        User user = new User();
-
-        user.setEmail(userRequestDto.getEmail());
-        user.setPasswordHash(userRequestDto.getPasswordHash());
-        user.setRole(userRequestDto.getRole());
-        user.setIsActive(userRequestDto.getIsActive());
-
-        User savedUser = userRepository.save(user);
-        return convertToResponseDto(savedUser);
-    }
-
-    public UserResponseDto updateUser(Long id, UserRequestDto userRequestDto) {
-        User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException(id));
-
-        if (!existingUser.getEmail().equals(userRequestDto.getEmail())) {
-            checkEmailUniqueness(userRequestDto.getEmail());
-            existingUser.setEmail(userRequestDto.getEmail());
-        }
-
-        existingUser.setPasswordHash(userRequestDto.getPasswordHash());
-        existingUser.setRole(userRequestDto.getRole());
-        existingUser.setIsActive(userRequestDto.getIsActive());
-
-        User savedUser = userRepository.save(existingUser);
-        return convertToResponseDto(savedUser);
-    }
-
-    public void deleteUserById(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException(id));
-        userRepository.delete(user);
-    }
-
-    private void checkEmailUniqueness(String email) {
-        if (userRepository.findByEmail(email).isPresent()) {
-            throw new UserAlreadyExistsException(email);
-        }
-    }
-
-    private UserResponseDto convertToResponseDto(User user) {
-        UserResponseDto dto = new UserResponseDto();
-        dto.setId(user.getId());
-        dto.setEmail(user.getEmail());
-        dto.setPasswordHash(user.getPasswordHash());
-        dto.setRole(user.getRole());
-        dto.setIsActive(user.getIsActive());
-        return dto;
-    }
-}
+    def delete(self, answer_id):
+        a = Answer.query.get_or_404(answer_id)
+        db.session.delete(a)
+        db.session.commit()
+        return {'message': 'Answer deleted'}
 ```
+app.py
+```py
+from flask import Flask
+from flask_restful import Api
+from models import db
 
-### Репозиторій
-``` java
-package com.db.lab6.repository;
+# Імпорт ресурсів
+from DB.user import UserResource, UserListResource
+from DB.survey import SurveyResource, SurveyListResource
+from DB.question import QuestionResource, QuestionListResource
+from DB.survey_link import SurveyLinkResource, SurveyLinkListResource
+from DB.response import ResponseResource, ResponseListResource
+from DB.answer import AnswerResource, AnswerListResource
 
-import com.db.lab6.model.User;
-import org.springframework.data.jpa.repository.JpaRepository;
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://wh0smarg0:1234@localhost/lab6_db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-import java.util.Optional;
+db.init_app(app)
+api = Api(app)
 
-public interface UserRepository extends JpaRepository<User, Long> {
-    Optional<User> findByEmail(String email);
-}
+# USERS
+api.add_resource(UserListResource, '/users')
+api.add_resource(UserResource, '/users/<int:user_id>')
+
+# SURVEYS
+api.add_resource(SurveyListResource, '/surveys')
+api.add_resource(SurveyResource, '/surveys/<int:survey_id>')
+
+# QUESTIONS
+api.add_resource(QuestionListResource, '/questions')
+api.add_resource(QuestionResource, '/questions/<int:question_id>')
+
+# SURVEY LINKS
+api.add_resource(SurveyLinkListResource, '/survey-links')
+api.add_resource(SurveyLinkResource, '/survey-links/<int:link_id>')
+
+# RESPONSES
+api.add_resource(ResponseListResource, '/responses')
+api.add_resource(ResponseResource, '/responses/<int:response_id>')
+
+# ANSWERS
+api.add_resource(AnswerListResource, '/answers')
+api.add_resource(AnswerResource, '/answers/<int:answer_id>')
+
+if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()  # Створити всі таблиці, якщо ще не існують
+    app.run(debug=True)
+```
+models.py
+```py
+from flask_sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy()
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(255), nullable=False, unique=True)
+    passwordHash = db.Column(db.String(255), nullable=False)
+    role = db.Column(db.String(50), nullable=False)
+    isActive = db.Column(db.Boolean, nullable=False)
+
+    surveys = db.relationship('Survey', backref='user', cascade="all, delete-orphan")
+
+class Survey(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(255), nullable=False)
+    description = db.Column(db.Text)
+    status = db.Column(db.String(50), nullable=False)
+    creationDate = db.Column(db.DateTime, nullable=False)
+    closeDate = db.Column(db.DateTime)
+    userId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    questions = db.relationship('Question', backref='survey', cascade="all, delete-orphan")
+    links = db.relationship('SurveyLink', backref='survey', cascade="all, delete-orphan")
+
+class Question(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    text = db.Column(db.Text, nullable=False)
+    type = db.Column(db.String(50), nullable=False)
+    isRequired = db.Column(db.Boolean, nullable=False)
+    order = db.Column(db.Integer, nullable=False)
+    surveyId = db.Column(db.Integer, db.ForeignKey('survey.id'), nullable=False)
+
+    answers = db.relationship('Answer', backref='question', cascade="all, delete-orphan")
+
+class SurveyLink(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    token = db.Column(db.String(100), nullable=False, unique=True)
+    isActive = db.Column(db.Boolean, nullable=False)
+    expiryDate = db.Column(db.DateTime)
+    clicks = db.Column(db.Integer, default=0, nullable=False)
+    surveyId = db.Column(db.Integer, db.ForeignKey('survey.id'), nullable=False)
+
+    responses = db.relationship('Response', backref='survey_link', cascade="all, delete-orphan")
+
+class Response(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    submissionDate = db.Column(db.DateTime, nullable=False)
+    isComplete = db.Column(db.Boolean, nullable=False)
+    surveyLinkId = db.Column(db.Integer, db.ForeignKey('survey_link.id'), nullable=False)
+
+    answers = db.relationship('Answer', backref='response', cascade="all, delete-orphan")
+
+class Answer(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    value = db.Column(db.Text, nullable=False)
+    responseId = db.Column(db.Integer, db.ForeignKey('response.id'), nullable=False)
+    questionId = db.Column(db.Integer, db.ForeignKey('question.id'), nullable=False)
 ```
