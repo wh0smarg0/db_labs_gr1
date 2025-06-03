@@ -1,6 +1,9 @@
 # Тестування працездатності системи
 
-Тестування сервісу виконувалось шляхом надсилання HTTP-запитів за допомогою Swagger UI.
+## Запуск сервера:
+<div style="text-align: center; margin: auto; margin-top: 15px; border: 1px solid;">
+	<img src="./images/runport.png">
+</div>
 
 
 ## Отримання всіх користувачів системи (GET /api/v1/users)
